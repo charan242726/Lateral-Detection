@@ -54,38 +54,7 @@ export default function Landing({ onEnter }) {
 
         </div>
 
-        {/* COMPARISON TABLE */}
-        <div style={{ marginTop: '3rem', overflowX: 'auto' }}>
-          <h3 style={{ textAlign: 'center', color: 'var(--accent)', fontSize: '1rem', marginBottom: '1rem', letterSpacing: 2 }}>VS. ENTERPRISE TOOLS</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', fontFamily: "'JetBrains Mono', monospace" }}>
-            <thead>
-              <tr style={{ background: 'rgba(56,189,248,0.08)' }}>
-                <th style={{ padding: '0.6rem 1rem', textAlign: 'left', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)', fontWeight: 400 }}>CAPABILITY</th>
-                <th style={{ padding: '0.6rem 1rem', textAlign: 'center', color: '#ef4444', borderBottom: '1px solid var(--border)', fontWeight: 600 }}>Darktrace / Splunk</th>
-                <th style={{ padding: '0.6rem 1rem', textAlign: 'center', color: 'var(--accent)', borderBottom: '1px solid var(--border)', fontWeight: 600 }}>LateralShield</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                ['Lateral Movement Detection',  '✅ Yes', '✅ Yes'],
-                ['Explainable AI (XAI / SHAP)',  '❌ Black Box', '✅ Full SHAP + Narratives'],
-                ['Active Deception (Honeypots)', '❌ Not Included', '✅ TrapWeave (Dynamic)'],
-                ['MITRE ATT&CK Mapping',         '⚠️ Premium Add-on', '✅ Built-in, Per Alert'],
-                ['Agent Installation Required',  '✅ Full Agent Stack', '❌ Agentless'],
-                ['Cost',                         '💰 $100k+ / year', '🆓 Open Source, Free'],
-                ['Human-in-the-Loop Validation', '❌ Auto-block only', '✅ Core Feature'],
-              ].map(([feat, them, us], i) => (
-                <tr key={i} style={{ background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent' }}>
-                  <td style={{ padding: '0.5rem 1rem', color: '#cbd5e1', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{feat}</td>
-                  <td style={{ padding: '0.5rem 1rem', textAlign: 'center', color: '#94a3b8', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{them}</td>
-                  <td style={{ padding: '0.5rem 1rem', textAlign: 'center', color: '#e2e8f0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontWeight: 600 }}>{us}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+        <div style={{ textAlign: 'center', marginTop: '4rem' }}>
           <button className="btn-cyber giant-btn" onClick={onEnter}>
              ENTER DEFENSE GRID <ArrowRight />
           </button>
