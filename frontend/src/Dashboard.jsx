@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Shield, Activity, Target, Clock, ShieldAlert, Cpu, Radio, Network, Lock, Power } from 'lucide-react';
+import { Shield, Activity, Target, Clock, ShieldAlert, Cpu, Radio, Network, Lock, Power, ShieldCheck } from 'lucide-react';
 
 // ── MITRE ATT&CK Lookup Table ──
 const MITRE_MAP = {
