@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Stars, Sphere, PerspectiveCamera, Icosahedron, Line } from '@react-three/drei';
+import { OrbitControls, Stars, Sphere, Box, Cylinder, Line } from '@react-three/drei';
 import * as THREE from 'three';
 
 // ── 1. The Ocean of Data (10,000 Instanced Particles) ──
@@ -59,46 +59,58 @@ function DataOcean({ view }) {
 function CyberCore({ results, view, validatedAlerts = [] }) {
   const coreRef = useRef();
   
-  // Visual nodes for the topology
-  const NUM_NODES = 60;
+  // 100% Perfect Enterprise Network Topology (Hub and Spoke)
   const topology = useMemo(() => {
     const pts = [];
     const conns = [];
-    // Central Node (Database)
+    
+    // Node 0: The Crown Jewel (Mainframe/DB Server)
     pts.push(new THREE.Vector3(0, 0, 0));
     
-    for (let i = 1; i < NUM_NODES; i++) {
-        const angle = (i / NUM_NODES) * Math.PI * 2 + (Math.random()*0.5);
-        const radius = 10 + Math.random() * 8;
-        const height = (Math.random() - 0.5) * 10;
-        pts.push(new THREE.Vector3(Math.cos(angle)*radius, height, Math.sin(angle)*radius));
-        
-        // Connect to center 30% of time
-        if(Math.random() > 0.7) {
-            conns.push([pts[i], pts[0]]);
-        }
-        // Connect to nearby
-        const target = Math.floor(Math.random() * i);
-        if(target !== 0) conns.push([pts[i], pts[target]]);
+    // Tier 1: Internal Application Servers (8 nodes)
+    const tier1Count = 8;
+    const tier1Radius = 7;
+    for(let i=0; i<tier1Count; i++) {
+        const angle = (i / tier1Count) * Math.PI * 2;
+        pts.push(new THREE.Vector3(Math.cos(angle)*tier1Radius, (Math.random()-0.5)*3, Math.sin(angle)*tier1Radius));
+        conns.push([pts[i+1], pts[0]]); // Connect Tier 1 directly to Core
     }
+    
+    // Tier 2: Endpoints/Workstations (24 nodes)
+    const tier2Count = 24;
+    const tier2Radius = 16;
+    for(let i=0; i<tier2Count; i++) {
+        const angle = (i / tier2Count) * Math.PI * 2;
+        pts.push(new THREE.Vector3(Math.cos(angle)*tier2Radius, (Math.random()-0.5)*6, Math.sin(angle)*tier2Radius));
+        
+        // Connect endpoint to a Tier 1 internal server
+        const parentIdx = 1 + Math.floor(Math.random() * tier1Count);
+        conns.push([pts[pts.length-1], pts[parentIdx]]);
+        
+        // Add peer-to-peer connections to show Lateral Movement paths
+        if (i > 0 && Math.random() > 0.4) {
+            const peerIdx = 1 + tier1Count + Math.floor(Math.random() * i);
+            conns.push([pts[pts.length-1], pts[peerIdx]]);
+        }
+    }
+    
     return { pts, conns };
   }, []);
 
   // Determine Threats
   const threats = useMemo(() => {
-    if(!results || results.flagged === 0) return [];
-    
-    // Convert backend alerts to 3D visual pulses
-    const alerts = results.alerts || [];
+    if(!results || !results.alerts) return [];
     const activeThreats = [];
+    const alerts = results.alerts;
     
     for(let a=0; a < Math.min(alerts.length, 12); a++) {
-        const nodeIdx = Math.floor(Math.random() * (NUM_NODES-1)) + 1;
+        // Attack originates from a Tier 2 Endpoint (index > 8)
+        const startNodeIdx = 9 + Math.floor(Math.random() * 24);
         let color = '#f59e0b'; // Low Risk
         if(alerts[a].severity === 'Medium') color = '#f97316';
         if(alerts[a].severity === 'High') color = '#ef4444';
         
-        activeThreats.push({ idx: nodeIdx, color, alertIdx: a });
+        activeThreats.push({ idx: startNodeIdx, color, alertIdx: a });
     }
     return activeThreats;
   }, [results]);
@@ -106,73 +118,65 @@ function CyberCore({ results, view, validatedAlerts = [] }) {
   useFrame((state) => {
     const time = state.clock.getElapsedTime();
     if (coreRef.current) {
-        coreRef.current.rotation.y = time * 0.08; // Rotating core
-        coreRef.current.position.y = Math.sin(time) * 1; // Floating effect
+        coreRef.current.rotation.y = time * 0.03; // Extremely smooth, slow rotation
+        coreRef.current.position.y = Math.sin(time * 0.5) * 0.5; // Gentle floating effect
     }
   });
 
-  // Calculate dynamic colors based on view
-  const opacityMult = view === 'landing' ? 0.5 : 1.0;
+  const opacityMult = view === 'landing' ? 0.35 : 1.0;
   
   // TrapWeave Calculations
   const hasHoneypot = validatedAlerts.some(v => v.isRealThreat);
-  const honeypotPos = new THREE.Vector3(15, -4, 10); // Placed securely away from Core
+  const honeypotPos = new THREE.Vector3(22, -2, 12); // Pushed further out as a rogue decoy
 
   return (
     <group ref={coreRef}>
       {/* 🔮 TRAPWEAVE HONEYPOT CORE 🔮 */}
       {hasHoneypot && (
           <group position={honeypotPos}>
-              <Icosahedron args={[1.5, 1]}>
-                  <meshStandardMaterial color="#06b6d4" wireframe transparent opacity={0.8 * opacityMult} />
-              </Icosahedron>
-              {/* Glowing internal sphere to show capture */}
-              <Sphere args={[0.5, 16, 16]}>
-                 <meshBasicMaterial color="#06b6d4" transparent opacity={0.6 * opacityMult} blending={THREE.AdditiveBlending} />
+              <Box args={[3, 3, 3]}>
+                  <meshPhysicalMaterial color="#06b6d4" transmission={0.9} opacity={opacityMult} metalness={0.8} roughness={0.2} wireframe />
+              </Box>
+              <Sphere args={[0.8, 16, 16]}>
+                 <meshBasicMaterial color="#06b6d4" transparent opacity={0.8 * opacityMult} blending={THREE.AdditiveBlending} />
               </Sphere>
+              <pointLight color="#06b6d4" intensity={4} distance={30} />
           </group>
       )}
 
-      {/* Geometric Core Element */}
-      <Icosahedron args={[2.5, 1]} position={[0,0,0]}>
-        <meshStandardMaterial color="#0284c7" wireframe transparent opacity={0.6 * opacityMult} />
-      </Icosahedron>
-      <Icosahedron args={[1.5, 0]} position={[0,0,0]}>
-        <meshBasicMaterial color="#38bdf8" transparent opacity={0.9 * opacityMult} blending={THREE.AdditiveBlending} />
-      </Icosahedron>
+      {/* NODE 0: Mainframe / Database (The Crown Jewel) */}
+      <group position={topology.pts[0]}>
+          <Cylinder args={[1.5, 1.5, 4, 32]}>
+              <meshPhysicalMaterial color="#38bdf8" transmission={0.9} opacity={opacityMult} metalness={0.5} roughness={0.1} />
+          </Cylinder>
+          <Cylinder args={[1.6, 1.6, 4.2, 16]} wireframe>
+              <meshBasicMaterial color="#7dd3fc" transparent opacity={0.2 * opacityMult} />
+          </Cylinder>
+          <pointLight color="#0284c7" intensity={2} distance={20} />
+      </group>
 
-      {/* Node Spheres */}
-      {topology.pts.slice(1).map((pos, i) => {
-          const nodeIdx = i + 1;
-          const threat = threats.find(t => t.idx === nodeIdx);
-          const color = threat ? threat.color : "#0ea5e9";
-          const scale = threat ? 0.6 : 0.3;
-          
+      {/* Nodes: Tier 1 & Tier 2 */}
+      {topology.pts.slice(1).map((pt, i) => {
+          const isTier1 = i < 8; // The first 8 after the core
+          const size = isTier1 ? 0.8 : 0.4;
+          const color = isTier1 ? "#0ea5e9" : "#64748b";
           return (
-              <group position={pos} key={`node-${i}`}>
-                 <Sphere args={[scale, 16, 16]}>
-                    <meshBasicMaterial color={color} transparent opacity={0.8 * opacityMult} />
-                 </Sphere>
-                 {threat && (
-                     <mesh>
-                         <sphereGeometry args={[scale * 2.5, 16, 16]} />
-                         <meshBasicMaterial color={threat.color} transparent opacity={0.2} wireframe />
-                     </mesh>
-                 )}
-              </group>
+              <Box key={`node-${i}`} args={[size, size, size]} position={pt}>
+                  <meshPhysicalMaterial color={color} transmission={0.5} opacity={opacityMult} metalness={0.5} roughness={0.2} />
+              </Box>
           )
       })}
 
-      {/* Holographic Connecting Lines */}
+      {/* Smooth Premium Connecting Lines */}
       {topology.conns.map((line, i) => (
-         <Line key={`edge-${i}`} points={line} color="rgba(56, 189, 248, 0.2)" lineWidth={1} transparent opacity={opacityMult} />
+         <Line key={`edge-${i}`} points={line} color="#0ea5e9" lineWidth={1} transparent opacity={0.15 * opacityMult} />
       ))}
       
       {/* 🕸️ TrapWeave Redirection Lines */}
       {hasHoneypot && threats.map((t, idx) => {
           const validation = validatedAlerts.find(v => v.idx === t.alertIdx);
           if (validation && validation.isRealThreat) {
-              return <Line key={`trap-edge-${idx}`} points={[topology.pts[t.idx], honeypotPos]} color="rgba(6, 182, 212, 0.4)" lineWidth={2} transparent opacity={opacityMult} />
+              return <Line key={`trap-edge-${idx}`} points={[topology.pts[t.idx], honeypotPos]} color="#06b6d4" lineWidth={2} transparent opacity={0.5 * opacityMult} />
           }
           return null;
       })}
