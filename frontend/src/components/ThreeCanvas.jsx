@@ -266,9 +266,9 @@ function CameraDirector({ view, validatedAlerts = [] }) {
                 state.camera.position.lerp(new THREE.Vector3(12, 5, 25), 0.04);
                 state.camera.lookAt(25, 4, 15); // Look directly at honeypotPos
             } else {
-                // Dashboard View: Perfectly centered, extremely subtle hover (no violent panning)
-                state.camera.position.lerp(new THREE.Vector3(Math.sin(time * 0.2) * 2, 16, 40), 0.05);
-                state.camera.lookAt(0, 0, 0);
+                // 🛑 MANUAL OVERRIDE TRIGGERED 🛑
+                // We do absolutely nothing here. 
+                // This releases the camera entirely to the user's mouse via <OrbitControls />
             }
         }
     });
@@ -289,6 +289,20 @@ export default function ThreeCanvas({ results, view, validatedAlerts }) {
         <CyberCore results={results} view={view} validatedAlerts={validatedAlerts} />
         
         <Stars radius={150} depth={50} count={4000} factor={4} saturation={1} fade speed={1.5} />
+        
+        {/* 100% Free Camera Movement for Judges */}
+        {view === 'dashboard' && (
+            <OrbitControls 
+                enablePan={true} 
+                enableZoom={true}
+                enableRotate={true}
+                maxDistance={120} 
+                minDistance={5} 
+                autoRotate={true} 
+                autoRotateSpeed={0.8}
+                makeDefault
+            />
+        )}
       </Canvas>
       <div style={{ 
         position: 'absolute', 
