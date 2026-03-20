@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Stars, Sphere, Box, Cylinder, Line } from '@react-three/drei';
+import { OrbitControls, Stars, Sphere, Box, Cylinder, Line, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 
 // ── 1. The Ocean of Data (10,000 Instanced Particles) ──
