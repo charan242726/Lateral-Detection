@@ -56,7 +56,7 @@ function DataOcean({ view }) {
 }
 
 // ── 2. The Core Topology (The Neural Network) ──
-function CyberCore({ results, view }) {
+function CyberCore({ results, view, validatedAlerts = [] }) {
   const coreRef = useRef();
   
   // Visual nodes for the topology
@@ -98,7 +98,7 @@ function CyberCore({ results, view }) {
         if(alerts[a].severity === 'Medium') color = '#f97316';
         if(alerts[a].severity === 'High') color = '#ef4444';
         
-        activeThreats.push({ idx: nodeIdx, color });
+        activeThreats.push({ idx: nodeIdx, color, alertIdx: a });
     }
     return activeThreats;
   }, [results]);
@@ -113,9 +113,26 @@ function CyberCore({ results, view }) {
 
   // Calculate dynamic colors based on view
   const opacityMult = view === 'landing' ? 0.5 : 1.0;
+  
+  // TrapWeave Calculations
+  const hasHoneypot = validatedAlerts.some(v => v.isRealThreat);
+  const honeypotPos = new THREE.Vector3(15, -4, 10); // Placed securely away from Core
 
   return (
     <group ref={coreRef}>
+      {/* 🔮 TRAPWEAVE HONEYPOT CORE 🔮 */}
+      {hasHoneypot && (
+          <group position={honeypotPos}>
+              <Icosahedron args={[1.5, 1]}>
+                  <meshStandardMaterial color="#06b6d4" wireframe transparent opacity={0.8 * opacityMult} />
+              </Icosahedron>
+              {/* Glowing internal sphere to show capture */}
+              <Sphere args={[0.5, 16, 16]}>
+                 <meshBasicMaterial color="#06b6d4" transparent opacity={0.6 * opacityMult} blending={THREE.AdditiveBlending} />
+              </Sphere>
+          </group>
+      )}
+
       {/* Geometric Core Element */}
       <Icosahedron args={[2.5, 1]} position={[0,0,0]}>
         <meshStandardMaterial color="#0284c7" wireframe transparent opacity={0.6 * opacityMult} />
@@ -150,19 +167,44 @@ function CyberCore({ results, view }) {
       {topology.conns.map((line, i) => (
          <Line key={`edge-${i}`} points={line} color="rgba(56, 189, 248, 0.2)" lineWidth={1} transparent opacity={opacityMult} />
       ))}
+      
+      {/* 🕸️ TrapWeave Redirection Lines */}
+      {hasHoneypot && threats.map((t, idx) => {
+          const validation = validatedAlerts.find(v => v.idx === t.alertIdx);
+          if (validation && validation.isRealThreat) {
+              return <Line key={`trap-edge-${idx}`} points={[topology.pts[t.idx], honeypotPos]} color="rgba(6, 182, 212, 0.4)" lineWidth={2} transparent opacity={opacityMult} />
+          }
+          return null;
+      })}
 
       {/* Cinematic Lateral Movement Particles (Lightning fast pulses) */}
-      {threats.map((t, idx) => (
-          <LightningPulse key={`pulse-${idx}`} start={topology.pts[t.idx]} target={topology.pts[0]} color={t.color} opacity={opacityMult} />
-      ))}
+      {threats.map((t, idx) => {
+          const validation = validatedAlerts.find(v => v.idx === t.alertIdx);
+          const isFalsePos = validation && !validation.isRealThreat;
+          const isTrapped = validation && validation.isRealThreat;
+          
+          if(isFalsePos) return null; // Eliminated, no longer moves
+          
+          const targetPos = isTrapped ? honeypotPos : topology.pts[0];
+          const pulseColor = isTrapped ? "#06b6d4" : t.color; // Cyan if trapped
+          
+          return <LightningPulse 
+                    key={`pulse-${idx}`} 
+                    start={topology.pts[t.idx]} 
+                    target={targetPos} 
+                    color={pulseColor} 
+                    opacity={opacityMult} 
+                    isTrapped={isTrapped} 
+                 />
+      })}
     </group>
   );
 }
 
 // Intense, fast pulse indicating a cyber attack traversing the graph
-function LightningPulse({ start, target, color, opacity }) {
+function LightningPulse({ start, target, color, opacity, isTrapped }) {
     const meshRef = useRef();
-    const speed = 0.5 + Math.random() * 0.8;
+    const speed = isTrapped ? 0.15 : (0.5 + Math.random() * 0.8); // Trapped nodes move slower
     const offset = Math.random() * 10;
     
     useFrame((state) => {
@@ -202,7 +244,7 @@ function CameraDirector({ view }) {
     return null;
 }
 
-export default function ThreeCanvas({ results, view }) {
+export default function ThreeCanvas({ results, view, validatedAlerts }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 0, background: '#020617' }}>
       <Canvas>
@@ -213,7 +255,8 @@ export default function ThreeCanvas({ results, view }) {
         <ambientLight intensity={0.5} />
         
         <DataOcean view={view} />
-        <CyberCore results={results} view={view} />
+        <CyberCore results={results} view={view} validatedAlerts={validatedAlerts} />
+
         
         <Stars radius={150} depth={50} count={3000} factor={4} saturation={1} fade speed={1} />
         

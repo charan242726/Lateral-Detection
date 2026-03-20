@@ -4,7 +4,7 @@ import { Shield, Zap, RefreshCw, Cpu, AlertTriangle, Settings, UserCheck, Shield
 
 const API_BASE = '/api';
 
-export default function Dashboard({ results, setResults, onBack }) {
+export default function Dashboard({ results, setResults, onBack, validatedAlerts, setValidatedAlerts }) {
   const [dataSrc, setDataSrc] = useState('synthetic');
   const [file, setFile] = useState(null);
   const [contamination, setContamination] = useState(0.10);
@@ -13,7 +13,6 @@ export default function Dashboard({ results, setResults, onBack }) {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [validatedAlerts, setValidatedAlerts] = useState([]);
 
   const handleRun = async () => {
     setLoading(true); setError(null);
@@ -189,17 +188,17 @@ export default function Dashboard({ results, setResults, onBack }) {
                          {/* Human-in-the-loop verification UI */}
                          <div style={{ marginTop: '0.6rem', borderTop: '1px dotted rgba(255,255,255,0.1)', paddingTop: '0.5rem' }}>
                              {validation ? (
-                                 <span style={{ fontSize: '0.65rem', fontWeight: 'bold', color: validation.isRealThreat ? 'var(--danger)' : 'var(--success)' }}>
-                                     {validation.isRealThreat ? '🚨 ESCALATED TO SOC' : '✅ MARKED AS FALSE POSITIVE'}
-                                 </span>
+                                 <div className="fade-in" style={{ fontSize: '0.65rem', fontWeight: 'bold', color: validation.isRealThreat ? 'var(--accent)' : 'var(--success)', padding: '0.3rem', background: validation.isRealThreat ? 'rgba(56, 189, 248, 0.1)' : 'transparent', border: validation.isRealThreat ? '1px solid var(--accent)' : 'none', borderRadius: 4 }}>
+                                     {validation.isRealThreat ? '🕸️ TRAPWEAVE ENGAGED: Target Redirected to Honeypot' : '✅ MARKED AS FALSE POSITIVE'}
+                                 </div>
                              ) : (
                                  <div style={{ display: 'flex', gap: '0.5rem' }}>
                                      <button onClick={() => validateAlert(i, false)} style={{ flex: 1, background: 'rgba(52, 211, 153, 0.1)', color: 'var(--success)', border: '1px solid var(--success)', borderRadius: 4, cursor: 'pointer', padding: '0.2rem', fontSize: '0.6rem' }}>
                                          Allow (False Pos)
                                      </button>
                                      {a.severity !== 'Low' && (
-                                         <button onClick={() => validateAlert(i, true)} style={{ flex: 1, background: 'rgba(248, 113, 113, 0.1)', color: 'var(--danger)', border: '1px solid var(--danger)', borderRadius: 4, cursor: 'pointer', padding: '0.2rem', fontSize: '0.6rem' }}>
-                                             Block Threat
+                                         <button onClick={() => validateAlert(i, true)} style={{ flex: 1, background: 'rgba(56, 189, 248, 0.1)', color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 4, cursor: 'pointer', padding: '0.2rem', fontSize: '0.6rem', boxShadow: '0 0 10px rgba(56, 189, 248, 0.3)' }}>
+                                             Deploy TrapWeave
                                          </button>
                                      )}
                                  </div>
