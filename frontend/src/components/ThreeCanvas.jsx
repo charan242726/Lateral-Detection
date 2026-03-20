@@ -229,8 +229,10 @@ function LightningPulse({ start, target, color, opacity, isTrapped }) {
 
 // ── 3. Camera Director ──
 // Smoothly animates the camera between the Landing Page view (vast ocean) and Dashboard view (up close)
-function CameraDirector({ view }) {
+function CameraDirector({ view, validatedAlerts = [] }) {
     useFrame((state) => {
+        const hasHoneypot = validatedAlerts.some(v => v.isRealThreat);
+        
         if (view === 'landing') {
             // Far out, panning across the data ocean
             state.camera.position.lerp(new THREE.Vector3(60, 20, 60), 0.02);
@@ -240,9 +242,16 @@ function CameraDirector({ view }) {
             state.camera.position.lerp(new THREE.Vector3(0, 45, 0), 0.03);
             state.camera.lookAt(0, 0, 0);
         } else {
-            // Swoop into the cyber core for the dashboard
-            state.camera.position.lerp(new THREE.Vector3(0, 15, 35), 0.05);
-            state.camera.lookAt(0, 0, 0);
+            // Dashboard
+            if (hasHoneypot) {
+                // Swoop dramatically to focus on the newly deployed Honeypot
+                state.camera.position.lerp(new THREE.Vector3(12, 5, 20), 0.04);
+                state.camera.lookAt(15, -4, 10);
+            } else {
+                // Normal Cyber Core View
+                state.camera.position.lerp(new THREE.Vector3(0, 15, 35), 0.05);
+                state.camera.lookAt(0, 0, 0);
+            }
         }
     });
     return null;
@@ -253,7 +262,7 @@ export default function ThreeCanvas({ results, view, validatedAlerts }) {
     <div style={{ position: 'fixed', inset: 0, zIndex: 0, background: '#020617' }}>
       <Canvas>
         <PerspectiveCamera makeDefault position={[60, 20, 60]} fov={45} />
-        <CameraDirector view={view} />
+        <CameraDirector view={view} validatedAlerts={validatedAlerts} />
         
         <fog attach="fog" args={['#020617', 20, 150]} />
         <ambientLight intensity={0.5} />

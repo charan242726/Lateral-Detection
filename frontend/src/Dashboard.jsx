@@ -37,14 +37,45 @@ export default function Dashboard({ results, setResults, onBack, validatedAlerts
     } catch (err) {
       console.warn("Backend Unreachable. Engaging Interactive Demo Mode for GitHub Pages.");
       const mockAlerts = [];
-      const sev = ['High', 'High', 'Medium', 'Medium', 'Low'];
+      const sev = ['High', 'High', 'Medium', 'Medium', 'Medium', 'Low'];
+      
+      const hostnames = ['HR-Desktop-04', 'FIN-Server-01', 'DEV-Workstation-11', 'Gateway-DMZ', 'VPN-Endpoint'];
+      const targets = ['DB-Core-Prd', 'Admin-DC-01', 'Backup-NAS', 'Auth-Server-02', 'Vault-App-01'];
+      
+      const highExp = [
+         "Unexpected RDP session established outside business hours.",
+         "Massive data payload transferred to restricted subnet.",
+         "Credential dumping signature (Mimikatz) detected in payload.",
+         "Rapid port scan originating from compromised endpoint."
+      ];
+      const medExp = [
+         "Unusual volume of SSH connections attempted.",
+         "Querying active directory for admin groups.",
+         "Ping sweep detected across internal subnet."
+      ];
+      const lowExp = [
+         "Pinging known servers at abnormal intervals.",
+         "Slightly higher than normal internal web traffic."
+      ];
+
       for(let i=0; i<35; i++) {
+         const severity = sev[Math.floor(Math.random()*sev.length)];
+         let baseScore = 0;
+         let exp = "";
+         if(severity === 'High') { baseScore = 0.85 + Math.random()*0.14; exp = highExp[Math.floor(Math.random()*highExp.length)]; }
+         else if(severity === 'Medium') { baseScore = 0.45 + Math.random()*0.39; exp = medExp[Math.floor(Math.random()*medExp.length)]; }
+         else { baseScore = 0.10 + Math.random()*0.34; exp = lowExp[Math.floor(Math.random()*lowExp.length)]; }
+
+         const src = hostnames[Math.floor(Math.random()*hostnames.length)];
+         const dst = targets[Math.floor(Math.random()*targets.length)];
+
          mockAlerts.push({
-             severity: sev[Math.floor(Math.random()*sev.length)],
-             anomaly_score: (0.15 + Math.random()*0.1).toFixed(4),
+             severity: severity,
+             anomaly_score: baseScore.toFixed(3),
              sbytes: 1000 + Math.random()*50000,
-             dbytes: 500 + Math.random()*20000,
-             spkts: Math.floor(10 + Math.random()*100),
+             src: src,
+             dst: dst,
+             explanation: exp,
              true_label: Math.random() > 0.3 ? 1 : 0
          });
       }
@@ -180,16 +211,27 @@ export default function Dashboard({ results, setResults, onBack, validatedAlerts
                              <span>{a.severity.toUpperCase()} RISK EVENT</span>
                              <span className="alert-score" style={{ color: riskColor }}>{Number(a.anomaly_score).toFixed(3)}</span>
                          </div>
-                         <div style={{ color:'var(--text-muted)', fontSize:'0.6rem', marginTop:'0.3rem' }}>
-                             LATERAL PATH: Node_A → Node_B <br/>
-                             {Math.round(a.sbytes)} BYTES TRANSFERRED
+                         <div style={{ color: '#fff', fontSize:'0.75rem', marginTop:'0.3rem', display:'flex', alignItems:'center', gap:'0.4rem', fontFamily:'monospace' }}>
+                             {a.src || "Endpoint-42"} <span style={{color:'var(--accent)'}}>→</span> {a.dst || "DB-Cluster"}
+                         </div>
+                         <div style={{ color:'var(--text-muted)', fontSize:'0.65rem', marginTop:'0.3rem', fontStyle:'italic', lineHeight:'1.4' }}>
+                             "{a.explanation || "Anomalous traffic volume detected by Isolation Forest."}"
                          </div>
                          
                          {/* Human-in-the-loop verification UI */}
                          <div style={{ marginTop: '0.6rem', borderTop: '1px dotted rgba(255,255,255,0.1)', paddingTop: '0.5rem' }}>
                              {validation ? (
-                                 <div className="fade-in" style={{ fontSize: '0.65rem', fontWeight: 'bold', color: validation.isRealThreat ? 'var(--accent)' : 'var(--success)', padding: '0.3rem', background: validation.isRealThreat ? 'rgba(56, 189, 248, 0.1)' : 'transparent', border: validation.isRealThreat ? '1px solid var(--accent)' : 'none', borderRadius: 4 }}>
-                                     {validation.isRealThreat ? '🕸️ TRAPWEAVE ENGAGED: Target Redirected to Honeypot' : '✅ MARKED AS FALSE POSITIVE'}
+                                 <div className="fade-in" style={{ 
+                                     fontSize: '0.70rem', fontWeight: 'bold', 
+                                     color: validation.isRealThreat ? '#000' : 'var(--success)', 
+                                     padding: '0.5rem', 
+                                     background: validation.isRealThreat ? 'var(--accent)' : 'rgba(52, 211, 153, 0.05)', 
+                                     border: validation.isRealThreat ? '1px solid var(--accent)' : '1px solid var(--success)', 
+                                     borderRadius: 4,
+                                     boxShadow: validation.isRealThreat ? '0 0 15px var(--accent-glow)' : 'none',
+                                     textAlign: 'center', marginTop: '0.3rem'
+                                 }}>
+                                     {validation.isRealThreat ? '🕸️ ACTIVE DECEPTION: ATTACKER TRAPPED' : '✅ MARKED AS FALSE POSITIVE'}
                                  </div>
                              ) : (
                                  <div style={{ display: 'flex', gap: '0.5rem' }}>
