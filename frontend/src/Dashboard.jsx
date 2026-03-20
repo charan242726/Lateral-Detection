@@ -199,23 +199,19 @@ export default function Dashboard({ results, setResults, onBack, validatedAlerts
   useEffect(() => {
       if(!autoTrap || !isLive || !results?.alerts) return;
 
-      // Find any 'High' severity threats that aren't validated yet
-      const unvalidatedHighs = results.alerts.filter(a => a.severity === 'High' && !validatedAlerts.some(v => v.idx === a.alertIdx));
-      
-      unvalidatedHighs.forEach(highRisk => {
-          // If 4 seconds have passed since detection, automatically contain it
-          const elapsedMs = Date.now() - highRisk.timestamp;
-          if (elapsedMs >= 3500) { // Fast response time
-             validateAlert(highRisk.alertIdx, true);
-          }
-      });
-      
-      // We check this 10 times a second to ensure surgical autonomous timing
       const autoInterval = setInterval(() => {
-         setResults(r => ({...r})); // Force re-eval
-      }, 100);
-      return () => clearInterval(autoInterval);
+          const now = Date.now();
+          results.alerts.forEach(a => {
+              if (a.severity === 'High') {
+                  const isHandled = validatedAlerts.some(v => v.idx === a.alertIdx);
+                  if (!isHandled && (now - a.timestamp >= 3500)) {
+                      validateAlert(a.alertIdx, true);
+                  }
+              }
+          });
+      }, 500);
 
+      return () => clearInterval(autoInterval);
   }, [autoTrap, isLive, results, validatedAlerts]);
 
 
