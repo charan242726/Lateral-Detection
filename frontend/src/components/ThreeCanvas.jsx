@@ -235,6 +235,10 @@ function CameraDirector({ view }) {
             // Far out, panning across the data ocean
             state.camera.position.lerp(new THREE.Vector3(60, 20, 60), 0.02);
             state.camera.lookAt(0, 0, 0);
+        } else if (view === 'analytics') {
+            // Tactical top-down view for XAI presentation
+            state.camera.position.lerp(new THREE.Vector3(0, 45, 0), 0.03);
+            state.camera.lookAt(0, 0, 0);
         } else {
             // Swoop into the cyber core for the dashboard
             state.camera.position.lerp(new THREE.Vector3(0, 15, 35), 0.05);
