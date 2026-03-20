@@ -237,3 +237,47 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); }
 
 @keyframes spin { 100% { transform: rotate(360deg); } }
 .spinning { animation: spin 1s linear infinite; }
+
+/* ──────────────────────────────────────────────
+   1000% Mobile/Tablet Optimization
+   ────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .landing-title { font-size: 3rem !important; }
+  .subtitle { font-size: 1rem !important; }
+  .explainer-grid { grid-template-columns: 1fr; }
+  
+  .hud-overlay {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    pointer-events: auto; /* enable scrolling touch */
+    padding: 1rem;
+    gap: 1.25rem;
+    background: linear-gradient(to bottom, transparent 30vh, rgba(2, 6, 23, 0.7) 40vh, rgba(2, 6, 23, 1) 100%);
+  }
+  
+  /* Feature window: let the 3D background show at the top before panels start */
+  .hud-overlay::before {
+    content: '';
+    flex: 0 0 35vh;
+    pointer-events: none;
+  }
+  
+  .hud-panel {
+    width: 100%;
+    margin: 0;
+  }
+  
+  .hud-bottom-right { 
+    max-height: 500px;
+  }
+}
+
+@media (max-width: 600px) {
+  .landing-title { font-size: 2.2rem !important; }
+  .hud-overlay::before { flex: 0 0 25vh; }
+  .hud-panel { padding: 1rem; }
+  .title { font-size: 1.1rem; }
+}

@@ -36,7 +36,27 @@ export default function Dashboard({ results, setResults, onBack }) {
         setValidatedAlerts([]);
       }
     } catch (err) {
-      setError(err.response?.data?.detail || err.message);
+      console.warn("Backend Unreachable. Engaging Interactive Demo Mode for GitHub Pages.");
+      const mockAlerts = [];
+      const sev = ['High', 'High', 'Medium', 'Medium', 'Low'];
+      for(let i=0; i<35; i++) {
+         mockAlerts.push({
+             severity: sev[Math.floor(Math.random()*sev.length)],
+             anomaly_score: (0.15 + Math.random()*0.1).toFixed(4),
+             sbytes: 1000 + Math.random()*50000,
+             dbytes: 500 + Math.random()*20000,
+             spkts: Math.floor(10 + Math.random()*100),
+             true_label: Math.random() > 0.3 ? 1 : 0
+         });
+      }
+      setResults({
+          metrics: { f1_score: 0.9102, auc_roc: 0.9544, fpr: 0.0381, precision: 0.8842 },
+          alerts: mockAlerts.sort((a,b) => b.anomaly_score - a.anomaly_score),
+          total: sampleSize,
+          flagged: Math.floor(sampleSize * contamination * 1.1)
+      });
+      setValidatedAlerts([]);
+      setError("SERVER OFFLINE. ACTIVE DEMO MODE ENGAGED.");
     } finally {
       setLoading(false);
     }
